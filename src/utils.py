@@ -21,28 +21,39 @@ def save_object(file_path, obj):
     except Exception as e:
         raise CustomException(e, sys)
     
-def evaluate_models(Train,X_train, y_train,X_test,y_test,models,P,D,Q):
+def evaluate_models(Train,Test,models,P,D,Q):
     try:
         report = {}
 
-        print(Train)
-        model = list(models.values())[0](endog=Train,order=(1,1,1))
+        print(Train["Close"])
+        model = list(models.values())[0](endog=Train["Close"],order=(5,1,1))
         
         """ model.endog=Train
         model.order(1,1,1) """
-        model.fit(X_train,y_train)
+        model_fit=model.fit()
+        import matplotlib.pyplot as plt
 
-        y_train_pred = model.predict(X_train)
+        fitted_values = model_fit.fittedvalues
 
-        y_test_pred = model.predict(X_test)
+        plt.figure(figsize=(12, 6))
+        plt.plot(Train["Close"].dropna(), label='Original Data')
+        plt.plot(fitted_values, color='red', label='Fitted Values')
+        plt.title('ARIMA Model Fit')
+        plt.xlabel('Time')
+        plt.ylabel('Value')
+        plt.legend()
+        plt.show()
+        pred = model_fit.predict(start=Test.index[0], end=Test.index[-1], typ='levels')
 
-        train_model_score = r2_score(y_train, y_train_pred)
+       
+        print("train",Train["Close"])
+        print("test",pred)
+        model_score = r2_score(Train, pred)
 
-        test_model_score = r2_score(y_test, y_test_pred)
 
-        report[list(models.keys())[0]] = test_model_score
+        report[list(models.keys())[0]] = model_score
 
-        return report
+        return report 
 
     except Exception as e:
         raise CustomException(e, sys)
