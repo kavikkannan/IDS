@@ -6,4 +6,5 @@ scikit-learn
 Flask
 yfinance
 statsmodels
+PyQt5
 #-e .

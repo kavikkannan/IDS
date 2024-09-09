@@ -27,9 +27,20 @@ class DataIngestion:
         logging.info("Entered the data ingestion method or component")
         try:
             ticker = 'AAPL'
-            stock_data = yf.download(ticker, start='2020-01-01', end='2023-01-01')
+            stock_data = yf.download(ticker, start='2000-01-01', end='2023-01-01')
             stock_data.to_csv('apple_stock_data.csv')
-            df=pd.read_csv('apple_stock_data.csv', index_col='Date', parse_dates=True)
+            df = pd.read_csv('apple_stock_data.csv', index_col='Date', parse_dates=True, infer_datetime_format=True)
+            
+            full_range = pd.date_range(start=df.index.min(), end=df.index.max())
+            df_full = df.reindex(full_range)
+
+            monthly_avg = df_full['Close'].resample('MS').mean()
+
+            monthly_avg.to_csv('monthly_avg_data.csv')
+            df=pd.read_csv('monthly_avg_data.csv')
+            df.columns=["Date","Close"]
+            df['Date']=pd.to_datetime(df['Date'])
+            df.set_index('Date',inplace=True)
             df = df[['Close']].copy()
             logging.info('Read the dataset as dataframe')
 
