@@ -23,7 +23,9 @@ class ModelTrainer:
     def initiate_model_trainer(self):
         try:
             trained_model_file_path=os.path.join("artifacts","model.pkl")
+            data1=pd.read_csv(os.path.join("artifacts","data.csv"))
             train_data=pd.read_csv(os.path.join("artifacts","train.csv"))
+
             test_data=pd.read_csv(os.path.join("artifacts","test.csv"))
 
             logging.info("Split training and test input data")
@@ -35,12 +37,10 @@ class ModelTrainer:
             
            
             
-            model_report:dict=evaluate_models(Train=train_data,Test=test_data,models=models,P=5,D=1,Q=1)
+            model_report:dict=evaluate_models(Data1=data1,Train=train_data,Test=test_data,models=models,P=5,D=1,Q=1)
             
-            ## To get best model score from dict
             best_model_score = max(sorted(model_report.values()))
 
-            ## To get best model name from dict
 
             best_model_name = list(model_report.keys())[
                 list(model_report.values()).index(best_model_score)
@@ -56,10 +56,10 @@ class ModelTrainer:
                 obj=best_model
             )
 
-            predicted=best_model.predict(train_data)
+            #predicted=best_model.predict(train_data)
 
-            r2_square = r2_score(test_data, predicted)
-            return r2_square
+            #r2_square = r2_score(test_data, predicted)
+            return 0
             
 
 

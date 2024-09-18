@@ -27,18 +27,19 @@ class DataIngestion:
         logging.info("Entered the data ingestion method or component")
         try:
             ticker = 'AAPL'
-            stock_data = yf.download(ticker, start='2000-01-01', end='2023-01-01')
+            stock_data = yf.download(ticker, start='2010-01-01', end='2023-01-01')
             stock_data.to_csv('apple_stock_data.csv')
             df = pd.read_csv('apple_stock_data.csv', index_col='Date', parse_dates=True, infer_datetime_format=True)
             
             full_range = pd.date_range(start=df.index.min(), end=df.index.max())
             df_full = df.reindex(full_range)
 
-            monthly_avg = df_full['Close'].resample('MS').mean()
+            df_full['Close'] = df_full['Close'].interpolate(method='linear')
 
-            monthly_avg.to_csv('monthly_avg_data.csv')
-            df=pd.read_csv('monthly_avg_data.csv')
-            df.columns=["Date","Close"]
+            df_full.index.name = 'Date'
+
+            df_full.to_csv('apple_stock_data_filled.csv')
+            df=pd.read_csv('apple_stock_data_filled.csv')
             df['Date']=pd.to_datetime(df['Date'])
             df.set_index('Date',inplace=True)
             df = df[['Close']].copy()

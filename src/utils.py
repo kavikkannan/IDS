@@ -22,11 +22,10 @@ def save_object(file_path, obj):
     except Exception as e:
         raise CustomException(e, sys)
     
-def evaluate_models(Train, Test, models, P, D, Q):
+def evaluate_models(Data1,Train, Test, models, P, D, Q):
     try:
         report = {}
 
-        # Ensure Train and Test are properly indexed by datetime
         Train['Date'] = pd.to_datetime(Train['Date'])
         Train.set_index('Date', inplace=True)
 
@@ -34,23 +33,47 @@ def evaluate_models(Train, Test, models, P, D, Q):
         Test.set_index('Date', inplace=True)
         import statsmodels.api as sm
 
-        # Create and fit the ARIMA model using the training data
-        model = list(models.values())[0](endog=Train["Close"], order=(1,1,1))
-        model=sm.tsa.statespace.SARIMAX(Train['Close'],order=(5, 2, 1),seasonal_order=(5,2,1,12))
+        model = list(models.values())[0](endog=Train["Close"], order=(5,2,1))
+        #model=sm.tsa.statespace.SARIMAX(Train['Close'],order=(5, 2, 1),seasonal_order=(5,2,1,12))
 
         model_fit = model.fit()
 
-        # Concatenate Train and Test into a single DataFrame for future prediction
-        future_df = pd.concat([Train, Test])
-        # Perform prediction using ARIMA without dynamic=True
         
-        future_df['forecast'] = model_fit.predict(start=Train.index[-1], end=275, typ='levels', dynamic=True)
-        future_df[['Close', 'forecast']].plot(figsize=(12, 8)) 
-        plt.savefig('kk')
-        print(future_df)
-        # Calculate R2 score on the training data (optional, since this is not future data)
-        """ model_score = r2_score(Train["Close"].dropna(), future_df['forecast'][:len(Train)].dropna())
-        report[list(models.keys())[0]] = model_score """
+        
+        Train['forecast'] = model_fit.predict(start=0 ,end=len(Train), typ='levels', dynamic=False)
+        Train[['Close', 'forecast']].plot(figsize=(12, 8)) 
+        plt.savefig('Train')
+        print(Train)
+
+        future_data=Test    
+
+        future_data['forecast']= model_fit.predict(start=0 ,end=len(Test), typ='levels', dynamic=True)
+        Test[['Close', 'forecast']].plot(figsize=(12, 8)) 
+        plt.savefig('Test')
+        #model_score = r2_score(Train["Close"].dropna(), future_df['forecast'][:len(Train)].dropna())
+        
+        Data1.plot(figsize=(12, 8))
+        plt.savefig('MainData')
+        
+        plt.figure(figsize=(12, 8))
+
+        plt.plot(Train['Close'], color='red', label='Train Close')
+        plt.plot(Train['forecast'], color='orange', linestyle='--', label='Train Forecast')
+
+        plt.plot(Test['Close'], color='green', label='Test Close')
+        plt.plot(Test['forecast'], color='lightgreen', linestyle='--', label='Test Forecast')
+
+        plt.plot(Data1['Close'], color='blue', label='MainData Close')
+
+        plt.title("Train, Test, and Main Data Comparison")
+        plt.xlabel("Time")
+        plt.ylabel("Close Price")
+        plt.legend()
+
+        plt.savefig('Combined_Plot.png')
+
+        plt.show()
+        report[list(models.keys())[0]] = 1 
 
         return report
 
